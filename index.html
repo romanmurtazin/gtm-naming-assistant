@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GTM Naming Assistant — Chrome Extension</title>
+  <meta name="description" content="Stop typing prefixes manually. GTM Naming Assistant enforces your naming conventions in Google Tag Manager automatically.">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue: #1a73e8;
+      --blue-dark: #1557b0;
+      --blue-lt: #e8f0fe;
+      --green: #34a853;
+      --text: #202124;
+      --muted: #5f6368;
+      --border: #dadce0;
+      --bg: #f8f9fa;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Google Sans', sans-serif;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: white; border-bottom: 1px solid var(--border);
+      padding: 0 48px; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .nav-icon {
+      width: 36px; height: 36px; background: var(--blue);
+      border-radius: 9px; display: flex; align-items: center;
+      justify-content: center; font-size: 18px;
+    }
+    .nav-title { font-size: 16px; font-weight: 700; color: var(--text); }
+    .nav-cta {
+      background: var(--blue); color: white; border: none;
+      border-radius: 8px; padding: 10px 22px;
+      font-family: 'Google Sans', sans-serif;
+      font-size: 14px; font-weight: 500; cursor: pointer;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .nav-cta:hover { background: var(--blue-dark); }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+      padding: 100px 48px;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute;
+      width: 600px; height: 600px; border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      top: -200px; right: -100px;
+    }
+    .hero::after {
+      content: ''; position: absolute;
+      width: 400px; height: 400px; border-radius: 50%;
+      background: rgba(255,255,255,0.04);
+      bottom: -150px; left: -80px;
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.15); border-radius: 20px;
+      padding: 6px 16px; color: white; font-size: 13px; font-weight: 500;
+      margin-bottom: 28px;
+    }
+    .badge-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; }
+    .hero h1 {
+      color: white; font-size: 56px; font-weight: 800;
+      line-height: 1.1; margin-bottom: 20px; letter-spacing: -1px;
+    }
+    .hero h1 em { color: #a8d1ff; font-style: normal; }
+    .hero p {
+      color: rgba(255,255,255,0.8); font-size: 20px;
+      line-height: 1.6; margin-bottom: 40px;
+    }
+    .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: white; color: var(--blue);
+      border: none; border-radius: 10px;
+      padding: 14px 32px; font-family: 'Google Sans', sans-serif;
+      font-size: 16px; font-weight: 600; cursor: pointer;
+      text-decoration: none;
+      transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+    .btn-secondary {
+      background: rgba(255,255,255,0.15); color: white;
+      border: 1px solid rgba(255,255,255,0.3); border-radius: 10px;
+      padding: 14px 32px; font-family: 'Google Sans', sans-serif;
+      font-size: 16px; font-weight: 500; cursor: pointer;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.25); }
+
+    /* ── FEATURES ── */
+    section { padding: 80px 48px; }
+    .section-label {
+      text-align: center; color: var(--blue);
+      font-size: 13px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .1em; margin-bottom: 12px;
+    }
+    h2 {
+      text-align: center; font-size: 40px; font-weight: 700;
+      color: var(--text); margin-bottom: 16px; letter-spacing: -.5px;
+    }
+    .section-desc {
+      text-align: center; font-size: 18px; color: var(--muted);
+      max-width: 560px; margin: 0 auto 56px;
+    }
+
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px; max-width: 1100px; margin: 0 auto;
+    }
+    .feature-card {
+      background: white; border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px;
+      transition: box-shadow .2s, transform .2s;
+    }
+    .feature-card:hover {
+      box-shadow: 0 8px 32px rgba(26,115,232,0.1);
+      transform: translateY(-3px);
+    }
+    .feature-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: var(--blue-lt); display: flex; align-items: center;
+      justify-content: center; font-size: 24px; margin-bottom: 16px;
+    }
+    .feature-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .feature-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+    /* ── HOW IT WORKS ── */
+    .how-section { background: var(--bg); }
+    .steps { display: flex; flex-direction: column; gap: 32px; max-width: 700px; margin: 0 auto; }
+    .step { display: flex; gap: 24px; align-items: flex-start; }
+    .step-num {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--blue); color: white;
+      font-size: 18px; font-weight: 700; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-content h3 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+    .step-content p { font-size: 15px; color: var(--muted); line-height: 1.6; }
+    .step-code {
+      display: inline-block; margin-top: 8px;
+      background: var(--text); color: #a8d1ff;
+      font-family: 'Roboto Mono', monospace; font-size: 13px;
+      padding: 6px 12px; border-radius: 6px;
+    }
+
+    /* ── SETTINGS PREVIEW ── */
+    .popup-preview {
+      max-width: 900px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
+      align-items: center;
+    }
+    .preview-text h2 { text-align: left; font-size: 36px; }
+    .preview-text .section-label { text-align: left; }
+    .preview-text .section-desc { text-align: left; margin: 0 0 28px; }
+    .toggle-list { display: flex; flex-direction: column; gap: 12px; }
+    .toggle-item {
+      display: flex; justify-content: space-between; align-items: center;
+      background: white; border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 16px;
+    }
+    .toggle-label-text { font-size: 13px; font-weight: 500; }
+    .toggle-sub-text { font-size: 11px; color: var(--muted); }
+    .toggle-on {
+      width: 36px; height: 20px; background: var(--blue);
+      border-radius: 10px; position: relative; flex-shrink: 0;
+    }
+    .toggle-on::after {
+      content: ''; position: absolute; width: 14px; height: 14px;
+      background: white; border-radius: 50%; top: 3px; right: 3px;
+    }
+    .toggle-off {
+      width: 36px; height: 20px; background: #ccc;
+      border-radius: 10px; position: relative; flex-shrink: 0;
+    }
+    .toggle-off::after {
+      content: ''; position: absolute; width: 14px; height: 14px;
+      background: white; border-radius: 50%; top: 3px; left: 3px;
+    }
+    .popup-img {
+      background: white; border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 16px 48px rgba(26,115,232,0.12);
+    }
+    .popup-header-preview {
+      background: var(--blue); padding: 14px 18px 0;
+    }
+    .pht { color: white; font-size: 14px; font-weight: 600; }
+    .phs { color: rgba(255,255,255,0.7); font-size: 11px; }
+    .ptabs { display: flex; }
+    .ptab { flex:1;padding:8px 0 7px;text-align:center;font-size:12px;font-weight:500;color:rgba(255,255,255,0.6);border-bottom:3px solid transparent; }
+    .ptab.a { color:white;border-bottom-color:white; }
+    .popup-body-preview { padding: 12px 14px; }
+    .slbl { font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:10px 0 5px; }
+    .prow { background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:7px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px; }
+    .pr-label { font-size:12px;font-weight:500;flex:1; }
+    .pr-val { font-family:'Roboto Mono',monospace;font-size:11px;color:var(--muted);background:white;border:1px solid var(--border);border-radius:6px;padding:3px 7px; }
+    .pr-val.hl { color:var(--blue);border-color:var(--blue);background:var(--blue-lt); }
+
+    /* ── CTA ── */
+    .cta-section {
+      background: linear-gradient(135deg, #1a73e8, #1557b0);
+      text-align: center; padding: 80px 48px;
+    }
+    .cta-section h2 { color: white; }
+    .cta-section p { color: rgba(255,255,255,0.8); font-size: 18px; margin: 16px 0 40px; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--text); color: rgba(255,255,255,0.6);
+      padding: 40px 48px; text-align: center; font-size: 14px;
+    }
+    footer a { color: rgba(255,255,255,0.6); }
+    footer a:hover { color: white; }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .hero { padding: 60px 20px; }
+      .hero h1 { font-size: 36px; }
+      section { padding: 60px 20px; }
+      .popup-preview { grid-template-columns: 1fr; }
+      h2 { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="#">
+    <div class="nav-icon">✏️</div>
+    <span class="nav-title">GTM Naming Assistant</span>
+  </a>
+  <a class="nav-cta" href="https://chrome.google.com/webstore" target="_blank">Add to Chrome — Free</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge"><span class="badge-dot"></span>Free Chrome Extension</div>
+    <h1>GTM naming<br><em>on autopilot</em></h1>
+    <p>Stop typing prefixes manually. GTM Naming Assistant enforces your naming conventions in Google Tag Manager — automatically, every time.</p>
+    <div class="hero-btns">
+      <a class="btn-primary" href="https://chrome.google.com/webstore" target="_blank">➕ Add to Chrome — It's Free</a>
+      <a class="btn-secondary" href="#features">See features ↓</a>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" style="background:white;">
+  <p class="section-label">What it does</p>
+  <h2>Everything you need for<br>consistent GTM naming</h2>
+  <p class="section-desc">A suite of smart tools that automate the repetitive parts of working with GTM naming conventions.</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🏷️</div>
+      <h3>Auto-prefix</h3>
+      <p>Select a tag, trigger, or variable type — the name field is filled with your prefix instantly. Customizable for every type.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Auto-append trigger name</h3>
+      <p>Assign a trigger to a tag — the trigger name is automatically appended to the tag name. Change the trigger, name updates too.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>GA4 Event Name Grabber</h3>
+      <p>Converts the trigger name to snake_case and fills the Event Name field in GA4 Event tags automatically.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📦</div>
+      <h3>DLV Helper</h3>
+      <p>Type the Data Layer Variable Name — the variable title updates in real time. No more copy-pasting between fields.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📋</div>
+      <h3>One-click copy</h3>
+      <p>Hover over any tag, trigger, or variable in the list — a copy button appears. Click to copy the name to clipboard instantly.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎨</div>
+      <h3>Tag type icons</h3>
+      <p>Optionally display recognizable icons next to tag types in the list for faster visual scanning.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+  <p class="section-label">How it works</p>
+  <h2>Up and running in minutes</h2>
+  <p class="section-desc">Install, configure your prefixes once, and let the extension do the work.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h3>Install the extension</h3>
+        <p>Add GTM Naming Assistant to Chrome from the Chrome Web Store. Free, no account required.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h3>Set your prefixes</h3>
+        <p>Click the extension icon and configure your naming convention — one prefix per tag, trigger, or variable type. Settings sync across your Chrome devices automatically.</p>
+        <span class="step-code">dlv - &nbsp;&nbsp; cjs - &nbsp;&nbsp; GA4 - Event - &nbsp;&nbsp; gAds -</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h3>Enable smart features</h3>
+        <p>Turn on Auto-append trigger name, GA4 Event Name Grabber, DLV Helper and other features with a single toggle.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h3>Work faster in GTM</h3>
+        <p>Create a new tag — name is filled. Assign a trigger — name updates. Open a variable — name fills from the DLV field. Just like that.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SETTINGS PREVIEW -->
+<section style="background:white;">
+  <div class="popup-preview">
+    <div class="preview-text">
+      <p class="section-label">Fully customizable</p>
+      <h2>Your rules,<br>your prefixes</h2>
+      <p class="section-desc">All features are independently toggleable. Set the exact naming convention you use daily.</p>
+      <div class="toggle-list">
+        <div class="toggle-item">
+          <div><div class="toggle-label-text">Auto-append trigger name</div><div class="toggle-sub-text">Add trigger name to tag name</div></div>
+          <div class="toggle-on"></div>
+        </div>
+        <div class="toggle-item">
+          <div><div class="toggle-label-text">GA4 Event Name Grabber</div><div class="toggle-sub-text">Fill Event Name from trigger</div></div>
+          <div class="toggle-on"></div>
+        </div>
+        <div class="toggle-item">
+          <div><div class="toggle-label-text">DLV Helper</div><div class="toggle-sub-text">Auto-fill from DLV Name field</div></div>
+          <div class="toggle-off"></div>
+        </div>
+        <div class="toggle-item">
+          <div><div class="toggle-label-text">Tag type icons</div><div class="toggle-sub-text">Show icons in tags list</div></div>
+          <div class="toggle-off"></div>
+        </div>
+      </div>
+    </div>
+    <div class="popup-img">
+      <div class="popup-header-preview">
+        <div style="display:flex;align-items:center;gap:10px;padding-bottom:12px;">
+          <div style="width:26px;height:26px;background:rgba(255,255,255,.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;">✏️</div>
+          <div><div class="pht">GTM Naming Assistant</div><div class="phs">Your GTM naming convention assistant</div></div>
+        </div>
+        <div class="ptabs">
+          <div class="ptab a">Tags</div><div class="ptab">Triggers</div><div class="ptab">Variables</div><div class="ptab">Settings</div>
+        </div>
+      </div>
+      <div class="popup-body-preview">
+        <div class="slbl">Google Analytics</div>
+        <div class="prow"><span class="pr-label">GA4 Event</span><div class="pr-val hl">GA4 - Event -</div></div>
+        <div class="slbl">Google Ads</div>
+        <div class="prow"><span class="pr-label">Conversion Tracking</span><div class="pr-val">gAds - Conv...</div></div>
+        <div class="prow"><span class="pr-label">Remarketing</span><div class="pr-val">gAds - Rema...</div></div>
+        <div class="slbl">Custom</div>
+        <div class="prow"><span class="pr-label">Custom HTML</span><div class="pr-val">cHTML -</div></div>
+        <div class="prow"><span class="pr-label">Custom Image</span><div class="pr-val">cImage -</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Ready to work faster in GTM?</h2>
+  <p>Join GTM professionals who use GTM Naming Assistant every day.<br>Free, no sign-up required.</p>
+  <a class="btn-primary" href="https://chrome.google.com/webstore" target="_blank">➕ Add to Chrome — It's Free</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>GTM Naming Assistant &nbsp;·&nbsp; Free Chrome Extension &nbsp;·&nbsp; <a href="privacy-policy">Privacy Policy</a></p>
+  <p style="margin-top:8px;">Works exclusively on tagmanager.google.com &nbsp;·&nbsp; No data collected</p>
+</footer>
+
+</body>
+</html>
